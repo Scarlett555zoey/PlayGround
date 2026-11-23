@@ -1,8 +1,10 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169/build/three.module.js';
 
 const animals=[['Gray Wolf','Wolf','gray'],['Coyote','Coyote','sand'],['Black Bear','Bear','black'],['Grizzly Bear','Bear','brown'],['Mountain Lion','Cat','tan'],['Bobcat','Cat','ginger'],['Canadian Lynx','Cat','snow'],['Wolverine','Mammal','brown'],['Red Fox','Fox','red'],['Elk','Ungulate','brown'],['Moose','Ungulate','dark'],['Mule Deer','Ungulate','tan'],['White-tailed Deer','Ungulate','tan'],['Mountain Goat','Ungulate','white'],['Bighorn Sheep','Ungulate','brown'],['Beaver','Mammal','brown'],['Snowshoe Hare','Mammal','white'],['Rabbit','Mammal','gray'],['Chipmunk','Mammal','brown'],['Bald Eagle','Bird','brown'],['Mallard Duck','Bird','green'],['Canada Goose','Bird','gray']];
-const grid=document.querySelector('#speciesGrid');let selected=0,sex='Female';animals.forEach((a,i)=>{const b=document.createElement('button');b.className='species'+(i===0?' active':'');b.innerHTML=`<b>${a[0]}</b><span>${a[1]}</span>`;b.onclick=()=>{document.querySelectorAll('.species').forEach(x=>x.classList.remove('active'));b.classList.add('active');selected=i};grid.appendChild(b)});
-document.querySelectorAll('.sex').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sex').forEach(x=>x.classList.remove('active'));b.classList.add('active');sex=b.dataset.sex});
+const portraitColors={gray:'#747c78',sand:'#b69a72',black:'#252927',brown:'#6d563b',tan:'#a28a62',dark:'#3d352d',snow:'#c4c5bc',red:'#b64c31',ginger:'#9a6a43',white:'#e9ede4',green:'#536941'};
+function updatePortrait(){const a=animals[selected];const portrait=document.querySelector('.portrait-silhouette');portrait.style.setProperty('--portrait',portraitColors[a[2]]||'#777c75');document.querySelector('#portraitName').textContent=a[0];document.querySelector('#portraitType').textContent=a[1].toUpperCase()+' · '+sex.toUpperCase();}
+const grid=document.querySelector('#speciesGrid');let selected=0,sex='Female';animals.forEach((a,i)=>{const b=document.createElement('button');b.className='species'+(i===0?' active':'');b.innerHTML=`<b>${a[0]}</b><span>${a[1]}</span>`;b.onclick=()=>{document.querySelectorAll('.species').forEach(x=>x.classList.remove('active'));b.classList.add('active');selected=i;updatePortrait()};grid.appendChild(b)});updatePortrait();
+document.querySelectorAll('.sex').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sex').forEach(x=>x.classList.remove('active'));b.classList.add('active');sex=b.dataset.sex;updatePortrait()});
 
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0xb7c6bc,.0019);
 const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,3000);const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.querySelector('#game').appendChild(renderer.domElement);
@@ -26,23 +28,47 @@ function groundHeight(x,z){return 22*Math.sin(x*.018)*Math.sin(z*.017)+12*Math.c
 const speciesSpeeds={Wolf:{walk:.035,trot:.065,run:.11,sprint:.17},Coyote:{walk:.038,trot:.07,run:.12,sprint:.19},Bear:{walk:.032,trot:.058,run:.095,sprint:.14},Cat:{walk:.04,trot:.075,run:.13,sprint:.21},Fox:{walk:.04,trot:.073,run:.125,sprint:.20},Ungulate:{walk:.045,trot:.09,run:.16,sprint:.24},Mammal:{walk:.038,trot:.068,run:.115,sprint:.18},Bird:{walk:.025,trot:.05,run:.09,sprint:.14}};
 
 function makeAnimal(a,isMale=false){
- const col=a[2]==='white'?0xe9ede4:a[2]==='brown'?0x6d563b:a[2]==='red'?0xb64c31:a[2]==='snow'?0xaaa9a0:a[2]==='tan'?0xa28a62:a[2]==='dark'?0x3d352d:a[2]==='gray'?0x777c75:a[2]==='black'?0x252927:a[2]==='green'?0x536941:a[2]==='sand'?0xb69a72:a[2]==='ginger'?0x9a6a43:0x7a6f5c;
- const g=new THREE.Group(),fur=new THREE.MeshStandardMaterial({color:col,roughness:.78});
- const body=new THREE.Mesh(new THREE.SphereGeometry(a[1]==='Bird'?3:5,14,9),fur);body.scale.set(1.35,a[1]==='Ungulate'?1:.75,.8);body.castShadow=true;g.add(body);
- if(a[1]!=='Bird'){
-  const head=new THREE.Mesh(new THREE.SphereGeometry(3.2,12,8),fur);head.position.set(5,a[1]==='Ungulate'?1:0,0);head.castShadow=true;g.add(head);
+ const col=a[2]==='white'?0xe9ede4:a[2]==='brown'?0x6d563b:a[2]==='red'?0xb64c31:a[2]==='snow'?0xc4c5bc:a[2]==='tan'?0xa28a62:a[2]==='dark'?0x3d352d:a[2]==='gray'?0x777c75:a[2]==='black'?0x252927:a[2]==='green'?0x536941:a[2]==='sand'?0xb69a72:a[2]==='ginger'?0x9a6a43:0x7a6f5c;
+ const g=new THREE.Group(),fur=new THREE.MeshStandardMaterial({color:col,roughness:.82,metalness:0});
+ const dark=new THREE.MeshStandardMaterial({color:0x25251f,roughness:.9});
+ const light=new THREE.MeshStandardMaterial({color:0xdedac5,roughness:.85});
+ const kind=a[1], name=a[0];
+ const ellipse=(sx,sy,sz,mat=fur,segments=20)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,12),mat);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;return m};
+
+ if(kind==='Bird'){
+  const body=ellipse(name==='Bald Eagle'?4.2:3.8,name==='Mallard Duck'?2.1:2.8,name==='Mallard Duck'?2.5:2.3,fur,18);g.add(body);
+  const neck=ellipse(1.7,2.7,1.6,name==='Canada Goose'?light:fur,14);neck.position.set(3.3,2.1,0);g.add(neck);
+  const head=ellipse(name==='Bald Eagle'?2.2:1.8,1.9,1.7,name==='Bald Eagle'?light:fur,16);head.position.set(4.8,4.2,0);g.add(head);
+  const beakMat=new THREE.MeshStandardMaterial({color:name==='Mallard Duck'?0xd1a22f:0xb6a95e,roughness:.65});
+  const beak=new THREE.Mesh(new THREE.ConeGeometry(.65,2.3,8),beakMat);beak.rotation.z=-Math.PI/2;beak.position.set(6.6,4.2,0);beak.castShadow=true;g.add(beak);
+  if(name==='Bald Eagle'){const crown=ellipse(.4,1.5,1.5,light,10);crown.position.set(4.8,5.7,0);g.add(crown)}
+  for(const side of [-1,1]){const wing=ellipse(4.8,.35,1.8,fur,12);wing.position.set(-.5,1.2,side*2.6);wing.rotation.z=-.12*side;wing.rotation.x=side*.18;g.add(wing);const feather=ellipse(3.4,.18,1.05,dark,10);feather.position.set(-1.2,-.1,side*3.55);feather.rotation.z=.12;g.add(feather)}
+  for(const side of [-1,1]){const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.18,1.5,4,8),light);leg.position.set(1, -4,side*.65);leg.castShadow=true;g.add(leg);g.userData.legs=g.userData.legs||[];g.userData.legs.push(leg)}
+  g.userData.body=body;
+ } else {
+  const ungulate=kind==='Ungulate',bear=kind==='Bear',cat=kind==='Cat',fox=kind==='Fox',longMuzzle=['Gray Wolf','Coyote','Red Fox','Wolverine'].includes(name);
+  const body=ellipse(ungulate?5.8:bear?5.8:4.8,ungulate?3.0:bear?3.7:3.1,ungulate?2.4:bear?3.1:2.5,fur,22);body.position.y=.45;g.add(body);
+  const shoulder=ellipse(bear?3.2:2.4,bear?3.5:2.8,ungulate?2.45:2.4,fur,18);shoulder.position.set(ungulate?3.7:3.9,bear?1.0:1.0,0);g.add(shoulder);
+  const head=ellipse(longMuzzle?2.9:2.35,ungulate?2.7:bear?2.55:2.2,2.15,fur,18);head.position.set(ungulate?6.2:6.1,ungulate?2.1:bear?.2:.7,0);g.add(head);
+  if(longMuzzle){const muzzle=ellipse(2.15,.95,1.45,fox?light:fur,14);muzzle.position.set(ungulate?7.9:7.65,ungulate?1.2:.0,0);g.add(muzzle)}
+  for(const side of [-1,1]){
+   const earShape=new THREE.SphereGeometry(1,12,8);const ear=new THREE.Mesh(earShape,fur);ear.scale.set(cat?.65:.85,cat?1.35:1.15,.45);ear.position.set(ungulate?5.8:5.4,ungulate?4.7:2.9,side*1.75);ear.rotation.z=side*(ungulate?.12:.18);ear.castShadow=true;g.add(ear);
+   if(name==='Bobcat'||name==='Canadian Lynx'){const tip=new THREE.Mesh(new THREE.ConeGeometry(.25,.9,7),dark);tip.position.set(ear.position.x,ear.position.y+1.15,side*1.75);tip.rotation.z=-side*.12;g.add(tip)}
+  }
+  if(name==='Gray Wolf'||name==='Coyote'||name==='Red Fox'||name==='Chipmunk'){const snout=new THREE.Mesh(new THREE.SphereGeometry(.32,8,6),dark);snout.position.set(8.15,-.18,0);snout.scale.set(1,.75,.75);g.add(snout)}
+  if(name==='Gray Wolf'||name==='Black Bear'||name==='Grizzly Bear'){for(const side of [-1,1]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),dark);eye.position.set(7.05,1.25,side*.95);g.add(eye)}}
+  if(name==='Red Fox'||name==='Gray Wolf'){const chest=ellipse(1.7,1.15,2.15,light,12);chest.position.set(6.0,-1.0,0);g.add(chest);const tail=ellipse(fox?4.7:3.5,fox?.95:1.15,.95,fur,16);tail.position.set(-5.8,.7,0);tail.rotation.z=fox?.75:.55;g.add(tail);if(fox){const tip=ellipse(1.5,.98,.98,light,12);tip.position.set(-9.0,3.7,0);g.add(tip)}}
+  if(ungulate&&['Elk','Moose','Mule Deer','White-tailed Deer'].includes(name)){
+   const antlerMat=new THREE.MeshStandardMaterial({color:0x76664d,roughness:.82});
+   for(const side of [-1,1]){const main=new THREE.Mesh(new THREE.CapsuleGeometry(.22,4.6,5,8),antlerMat);main.position.set(5.8,5.4,side*1.8);main.rotation.z=-side*.18;main.rotation.x=side*.75;g.add(main);for(let r=0;r<3;r++){const tine=new THREE.Mesh(new THREE.CapsuleGeometry(.14,1.7,4,7),antlerMat);tine.position.set(6.2+r*.55,6.7+r*.55,side*(2.1+r*.25));tine.rotation.z=side*(.45+r*.18);g.add(tine)}}
+  }
+  if(name==='Bighorn Sheep'||name==='Mountain Goat'){for(const side of [-1,1]){const horn=new THREE.Mesh(new THREE.TorusGeometry(1.35,.28,8,18,Math.PI*1.35),new THREE.MeshStandardMaterial({color:name==='Bighorn Sheep'?0x5b4c38:0xcbd0c1,roughness:.82}));horn.position.set(5.9,3.8,side*1.55);horn.rotation.y=Math.PI/2;horn.rotation.z=side*.25;g.add(horn)}}
+  g.userData.legs=[];
+  for(const side of [-1,1])for(const fore of [-1,1]){const leg=ellipse(bear?.65:.52,bear?3.6:3.8, bear?.65:.55,fur,10);leg.position.set(fore*(ungulate?3.7:2.9),-3.8,side*(ungulate?1.7:2.1));leg.userData.phase=side+fore;g.add(leg);g.userData.legs.push(leg)}
+  if(name==='Beaver'||name==='Chipmunk'||name==='Snowshoe Hare'||name==='Rabbit'){const tail=ellipse(name==='Beaver'?3.0:2.2, name==='Beaver'?1.0:.7, name==='Beaver'?1.8:.55, name==='Beaver'?dark:fur,12);tail.position.set(-6.2,.2,0);tail.rotation.z=.45;g.add(tail)}
+  g.userData.body=body;
  }
- g.userData.legs=[];
- if(a[1]!=='Bird'){
-  for(const side of [-1,1])for(const fore of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.58,.72,5.2,8),fur);leg.position.set(fore*2.7,-4.5,side*2.35);leg.castShadow=true;leg.userData.phase=side+fore;g.add(leg);g.userData.legs.push(leg)}
- }
- // Anatomical detail is only shown on species that naturally lack covering fur.
- if(isMale&&['Red Fox','Rabbit','Snowshoe Hare','Chipmunk','Mallard Duck','Canada Goose'].includes(a[0])){
-  const skin=new THREE.MeshStandardMaterial({color:0xb98b70,roughness:.65});
-  for(const side of [-1,1]){const ball=new THREE.Mesh(new THREE.SphereGeometry(.38,8,6),skin);ball.position.set(-2.7,-3.8,side*.75);g.add(ball)}
-  const penis=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,1.15,8),skin);penis.position.set(-3.4,-3.5,0);penis.rotation.z=Math.PI/2.8;g.add(penis);
- }
- g.userData.body=body;g.userData.fur=fur;g.userData.kind=a[1];g.userData.gait='walk';
+ g.userData.legs=g.userData.legs||[];g.userData.kind=kind;g.userData.gait='walk';g.userData.fur=fur;
  return g;
 }
 
@@ -64,7 +90,7 @@ for(const w of wildlife){if(!w.down&&Math.random()<.004){w.dir+=(Math.random()-.
  elapsed=6.1+((now-clockStart)/1000)/60*20;if(elapsed>=24)elapsed-=24;let h=Math.floor(elapsed),m=Math.floor((elapsed-h)*60);document.querySelector('#clock').textContent=`${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;const day=.55+.45*Math.cos((elapsed-6)/24*Math.PI*2);scene.fog.color.setRGB(.45*day+.25,.58*day+.28,.58*day+.31);hemi.intensity=.45+day*1.8;sun.intensity=.25+day*2.2;if(elapsed>20||elapsed<5)renderer.toneMappingExposure=.55;else renderer.toneMappingExposure=1;renderer.render(scene,camera)}requestAnimationFrame(animate);
 
 function toast(t){const e=document.querySelector('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1800)}
-document.querySelector('#start').onclick=()=>{document.querySelector('#menu').classList.add('hidden');document.querySelector('#speciesName').textContent=animals[selected][0].toUpperCase()+' · '+sex.toUpperCase();setPlayer();toast('You are a newborn '+sex.toLowerCase()+' '+animals[selected][0])};
+document.querySelector('#start').onclick=()=>{document.querySelector('#menu').classList.add('hidden');document.querySelector('#speciesName').textContent=animals[selected][0].toUpperCase()+' · '+sex.toUpperCase();setPlayer();toast('You are a baby '+sex.toLowerCase()+' '+animals[selected][0])};
 window.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyC')document.querySelector('#callbox').classList.toggle('open')});window.addEventListener('keyup',e=>keys[e.code]=false);window.addEventListener('mousemove',e=>{if(document.pointerLockElement===renderer.domElement){pitch+=e.movementY*.002;yaw-=e.movementX*.002;pitch=Math.max(-.8,Math.min(.5,pitch));}});renderer.domElement.addEventListener('click',()=>{if(!document.querySelector('#menu').classList.contains('hidden'))return;renderer.domElement.requestPointerLock?.()});
 document.querySelector('#calls').onclick=()=>document.querySelector('#callbox').classList.toggle('open');document.querySelectorAll('.call').forEach(b=>b.onclick=()=>toast(b.textContent+' — call echoed across the valley'));document.querySelector('#drink').onclick=()=>{toast('You drink deeply from the cold water');document.querySelector('#water').style.width='100%'};document.querySelector('#attack').onclick=()=>{let target=null,best=999;for(const w of wildlife){const d=player.position.distanceTo(w.mesh.position);if(d<best&&d<18){best=d;target=w}}if(target){target.down=!target.down;target.mesh.rotation.z=target.down?Math.PI/2:0;toast(target.down?'Prey is pinned — hold on!':'Prey escaped')}else toast('No prey within reach')};
 const joy=document.querySelector('#joystick'),stick=document.querySelector('#stick');let joyActive=false;joy.addEventListener('pointerdown',e=>{joyActive=true;joy.setPointerCapture(e.pointerId)});joy.addEventListener('pointermove',e=>{if(!joyActive)return;const r=joy.getBoundingRect();let x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2);x=Math.max(-35,Math.min(35,x));y=Math.max(-35,Math.min(35,y));stick.style.transform=`translate(${x}px,${y}px)`;touchMove={x:x/35,y:y/35}});joy.addEventListener('pointerup',()=>{joyActive=false;stick.style.transform='';touchMove={x:0,y:0}});
