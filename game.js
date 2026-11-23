@@ -7,9 +7,9 @@ const grid=document.querySelector('#speciesGrid');let selected=9,sex='Female';an
 function stepSpecies(delta){selected=(selected+delta+animals.length)%animals.length;updatePortrait()}document.querySelector('#prevSpecies')?.addEventListener('click',()=>stepSpecies(-1));document.querySelector('#nextSpecies')?.addEventListener('click',()=>stepSpecies(1));
 document.querySelectorAll('.sex').forEach(b=>b.onclick=()=>{document.querySelectorAll('.sex').forEach(x=>x.classList.remove('active'));b.classList.add('active');sex=b.dataset.sex;updatePortrait()});
 
-const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0xb7c6bc,.0019);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x91a6a5);scene.fog=new THREE.FogExp2(0x9aa99f,.00135);
 const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,3000);const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.querySelector('#game').appendChild(renderer.domElement);
-const hemi=new THREE.HemisphereLight(0xd8e7ed,0x4d583a,2.1);scene.add(hemi);const sun=new THREE.DirectionalLight(0xfff1c7,2.5);sun.position.set(-180,220,-120);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=sun.shadow.camera.right=650;sun.shadow.camera.top=sun.shadow.camera.bottom=650;scene.add(sun);
+const hemi=new THREE.HemisphereLight(0xdce9ef,0x59613f,2.35);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffedbd,3.25);sun.position.set(-180,220,-120);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=sun.shadow.camera.right=650;sun.shadow.camera.top=sun.shadow.camera.bottom=650;scene.add(sun);renderer.toneMapping=THREE.ACESFilfilmicToneMapping;renderer.toneMappingExposure=1.05;
 
 const geo=new THREE.PlaneGeometry(1800,1800,90,90);const pos=geo.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i);const dist=Math.sqrt(x*x+y*y);let z=22*Math.sin(x*.018)*Math.sin(y*.017)+12*Math.cos(x*.031+y*.014);z+=Math.max(0,(dist-260)/3.5);pos.setZ(i,z)}geo.computeVertexNormals();const ground=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0x536b43,roughness:.95}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 
@@ -27,6 +27,50 @@ const logGeo=new THREE.CylinderGeometry(.9,.9,13,8);for(let i=0;i<35;i++){const 
 function groundHeight(x,z){return 22*Math.sin(x*.018)*Math.sin(z*.017)+12*Math.cos(x*.031+z*.014)+Math.max(0,(Math.sqrt(x*x+z*z)-260)/3.5)}
 
 const speciesSpeeds={Wolf:{walk:.035,trot:.065,run:.11,sprint:.17},Coyote:{walk:.038,trot:.07,run:.12,sprint:.19},Bear:{walk:.032,trot:.058,run:.095,sprint:.14},Cat:{walk:.04,trot:.075,run:.13,sprint:.21},Fox:{walk:.04,trot:.073,run:.125,sprint:.20},Ungulate:{walk:.045,trot:.09,run:.16,sprint:.24},Mammal:{walk:.038,trot:.068,run:.115,sprint:.18},Bird:{walk:.025,trot:.05,run:.09,sprint:.14}};
+
+function makeRealisticElk(g, fur, isMale, sex) {
+  // Refined elk anatomy: sloping back, broad chest, long neck, tapered face,
+  // defined legs, muzzle, ears, and a warm winter coat with a pale rump.
+  const ellipse=(sx,sy,sz,mat=fur,segments=28)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,18),mat);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;return m};
+  const dark=new THREE.MeshStandardMaterial({color:0x3d3428,roughness:.88});
+  const light=new THREE.MeshStandardMaterial({color:0xd9cda9,roughness:.9});
+  const nose=new THREE.MeshStandardMaterial({color:0x171713,roughness:.72});
+
+  const body=ellipse(5.9,2.55,2.15,fur,32);body.position.set(-.2,.65,0);body.rotation.z=-.035;g.add(body);
+  const shoulder=ellipse(2.85,3.15,2.32,fur,30);shoulder.position.set(3.65,.35,0);g.add(shoulder);
+  const haunch=ellipse(2.25,2.55,2.24,fur,30);haunch.position.set(-4.2,.25,0);g.add(haunch);
+  const neck=ellipse(1.65,3.55,1.62,fur,26);neck.position.set(5.15,2.55,0);neck.rotation.z=-.35;g.add(neck);
+  const head=ellipse(2.05,1.72,1.48,fur,24);head.position.set(6.55,4.65,0);head.rotation.z=.10;g.add(head);
+  const bridge=ellipse(1.78,.78,1.18,fur,22);bridge.position.set(7.95,3.75,0);bridge.rotation.z=-.48;g.add(bridge);
+  const muzzle=ellipse(1.65,.72,1.22,light,22);muzzle.position.set(8.72,3.05,0);g.add(muzzle);
+  const nostrils=ellipse(.42,.28,.25,nose,12);nostrils.position.set(10.25,3.02,0);nostrils.scale.z=.75;g.add(nostrils);
+
+  // Mane and darker neck shading.
+  for(let i=0;i<7;i++){const hair=ellipse(.62,1.15+i*.08,.18,dark,12);hair.position.set(4.45+i*.28,3.0-i*.18,0);hair.rotation.z=-.55+i*.025;g.add(hair)}
+  const rump=ellipse(2.15,.95,2.18,light,24);rump.position.set(-5.55,.9,0);rump.scale.z=1.02;g.add(rump);
+
+  for(const side of [-1,1]){
+    const ear=ellipse(.55,1.55,.28,fur,16);ear.position.set(6.25,6.15,side*1.48);ear.rotation.z=side*.30;ear.rotation.x=side*.12;g.add(ear);
+    const inner=ellipse(.32,.95,.12,light,12);inner.position.set(6.32,6.12,side*1.69);inner.rotation.z=side*.30;g.add(inner);
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.18,12,8),nose);eye.position.set(7.52,4.92,side*1.18);g.add(eye);
+    const eyeGlint=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),new THREE.MeshBasicMaterial({color:0xeef2dc}));eyeGlint.position.set(7.61,5.02,side*1.23);g.add(eyeGlint);
+
+    if(isMale||sex==='Male'){
+      const antlerMat=new THREE.MeshStandardMaterial({color:0x7a6748,roughness:.65,metalness:.03});
+      const main=new THREE.Mesh(new THREE.CapsuleGeometry(.24,6.2,7,12),antlerMat);main.position.set(6.15,7.45,side*1.75);main.rotation.z=-side*.42;main.rotation.x=side*.48;main.castShadow=true;g.add(main);
+      for(let r=0;r<6;r++){const length=1.55+r*.18;const tine=new THREE.Mesh(new THREE.CapsuleGeometry(.13,length,5,8),antlerMat);tine.position.set(6.45+r*.36,7.55+r*.72,side*(1.86+r*.10));tine.rotation.z=side*(.58+r*.10);tine.rotation.x=side*.18;tine.castShadow=true;g.add(tine)}
+    }
+  }
+
+  g.userData.legs=[];
+  for(const side of [-1,1])for(const fore of [-1,1]){
+    const x=fore*3.65-(fore>0?.35:0),z=side*1.62;
+    const upper=ellipse(.48,2.65,.48,fur,16);upper.position.set(x,-2.05,z);g.add(upper);
+    const lower=ellipse(.38,2.9,.38,dark,14);lower.position.set(x+(fore>0?.18:-.12),-5.15,z);g.add(lower);
+    const hoof=new THREE.Mesh(new THREE.CapsuleGeometry(.48,.72,5,10),new THREE.MeshStandardMaterial({color:0x171713,roughness:.75}));hoof.position.set(lower.position.x,-7.82,z);hoof.scale.set(1,.55,.85);hoof.castShadow=true;g.add(hoof);g.userData.legs.push(lower);
+  }
+  g.userData.body=body;
+}
 
 function makeAnimal(a,isMale=false){
  const col=a[2]==='white'?0xe9ede4:a[2]==='brown'?0x6d563b:a[2]==='red'?0xb64c31:a[2]==='snow'?0xc4c5bc:a[2]==='tan'?0xa28a62:a[2]==='dark'?0x3d352d:a[2]==='gray'?0x777c75:a[2]==='black'?0x252927:a[2]==='green'?0x536941:a[2]==='sand'?0xb69a72:a[2]==='ginger'?0x9a6a43:0x7a6f5c;
@@ -48,6 +92,7 @@ function makeAnimal(a,isMale=false){
   g.userData.body=body;
  } else {
   const ungulate=kind==='Ungulate',bear=kind==='Bear',cat=kind==='Cat',fox=kind==='Fox',longMuzzle=['Gray Wolf','Coyote','Red Fox','Wolverine'].includes(name);
+  if(name==='Elk'){makeRealisticElk(g,fur,isMale,a[0]);g.userData.kind=kind;g.userData.gait='walk';g.userData.fur=fur;return g}
   const body=ellipse(ungulate?5.8:bear?5.8:4.8,ungulate?3.0:bear?3.7:3.1,ungulate?2.4:bear?3.1:2.5,fur,22);body.position.y=.45;g.add(body);
   const shoulder=ellipse(bear?3.2:2.4,bear?3.5:2.8,ungulate?2.45:2.4,fur,18);shoulder.position.set(ungulate?3.7:3.9,bear?1.0:1.0,0);g.add(shoulder);
   const head=ellipse(longMuzzle?2.9:2.35,ungulate?2.7:bear?2.55:2.2,2.15,fur,18);head.position.set(ungulate?6.2:6.1,ungulate?2.1:bear?.2:.7,0);g.add(head);
