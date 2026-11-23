@@ -10,7 +10,11 @@ const hemi=new THREE.HemisphereLight(0xd8e7ed,0x4d583a,2.1);scene.add(hemi);cons
 
 const geo=new THREE.PlaneGeometry(1800,1800,90,90);const pos=geo.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),y=pos.getY(i);const dist=Math.sqrt(x*x+y*y);let z=22*Math.sin(x*.018)*Math.sin(y*.017)+12*Math.cos(x*.031+y*.014);z+=Math.max(0,(dist-260)/3.5);pos.setZ(i,z)}geo.computeVertexNormals();const ground=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0x536b43,roughness:.95}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 
-function mountain(x,z,s,c){const g=new THREE.ConeGeometry(s,s*1.15,7);const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:c,roughness:1,flatShading:true}));m.position.set(x,s*.48,z);m.scale.z=.75;m.castShadow=m.receiveShadow=true;scene.add(m);const cap=new THREE.Mesh(new THREE.ConeGeometry(s*.28,s*.34,7),new THREE.MeshStandardMaterial({color:0xdde2dc,roughness:.9,flatShading:true}));cap.position.set(x,s*.98,z);cap.scale.z=.75;scene.add(cap)}
+function mountain(x,z,s,c){
+ const g=new THREE.SphereGeometry(s,28,18);g.scale(1.15,.82,.78);g.translate(0,-.18,0);const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:c,roughness:.92,flatShading:false}));m.position.set(x,s*.45,z);m.rotation.y=Math.random()*Math.PI;m.castShadow=m.receiveShadow=true;scene.add(m);
+ const snow=new THREE.Mesh(new THREE.ConeGeometry(s*.43,s*.58,16),new THREE.MeshStandardMaterial({color:0xdedfd7,roughness:.9,flatShading:false}));snow.position.set(x,s*.92,z);snow.scale.z=.78;snow.castShadow=true;scene.add(snow);
+ for(let r=0;r<5;r++){const ridge=new THREE.Mesh(new THREE.ConeGeometry(s*.09,s*.38,5),new THREE.MeshStandardMaterial({color:0x7c8176,roughness:1,flatShading:false}));const a=r/5*Math.PI*2;ridge.position.set(x+Math.cos(a)*s*.58,s*.58,z+Math.sin(a)*s*.43);ridge.rotation.z=Math.cos(a)*.35;scene.add(ridge)}
+}
 for(let i=0;i<16;i++){let angle=i/16*Math.PI*2,r=650+(i%3)*55;mountain(Math.cos(angle)*r,-Math.sin(angle)*r,130+(i%4)*32,i%2?0x536355:0x68715d)}
 const lake=new THREE.Mesh(new THREE.CircleGeometry(190,64),new THREE.MeshPhysicalMaterial({color:0x4e8794,roughness:.16,metalness:.05,transparent:true,opacity:.88}));lake.rotation.x=-Math.PI/2;lake.position.set(-310,31,-220);scene.add(lake);
 
