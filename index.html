@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f2ff">
+  <title>Little Moments — a cozy companion game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Little Moments home"><span class="brand-mark">✳</span><span>little moments</span></a>
+      <div class="top-note"><span class="live-dot"></span> YOUR COZY CORNER <span class="top-divider">·</span> <span id="session-label">A little time together</span></div>
+      <button class="icon-button sound-toggle" id="sound-toggle" aria-label="Toggle sound" title="Sound off">♫<span class="sound-slash"></span></button>
+    </header>
+
+    <section class="game-layout">
+      <aside class="cast-panel panel">
+        <div class="eyebrow">YOUR COMPANION</div>
+        <h1>Pick your person</h1>
+        <p class="panel-intro">Two grown-up, fictional friends. Each brings their own little spark.</p>
+        <div class="character-picks" role="group" aria-label="Choose your companion">
+          <button class="character-pick active" data-character="mira" aria-pressed="true">
+            <span class="pick-avatar mira-mini"><span class="mini-hair"></span><span class="mini-face">●</span></span>
+            <span class="pick-copy"><strong>Mira</strong><small>21 · bookish & bright</small></span><span class="pick-check">✓</span>
+          </button>
+          <button class="character-pick" data-character="leo" aria-pressed="false">
+            <span class="pick-avatar leo-mini"><span class="mini-hair"></span><span class="mini-face">●</span></span>
+            <span class="pick-copy"><strong>Leo</strong><small>22 · easygoing & curious</small></span><span class="pick-check">✓</span>
+          </button>
+        </div>
+        <div class="side-rule"></div>
+        <div class="eyebrow mood-label">SET THE VIBE</div>
+        <div class="mood-options" role="group" aria-label="Choose a vibe">
+          <button class="mood-chip selected" data-mood="cozy" aria-pressed="true">☁️ <span>Cozy</span></button>
+          <button class="mood-chip" data-mood="silly" aria-pressed="false">✨ <span>Silly</span></button>
+          <button class="mood-chip" data-mood="thoughtful" aria-pressed="false">🌙 <span>Thoughtful</span></button>
+        </div>
+        <div class="boundaries-card"><span class="boundary-icon">♡</span><div><strong>Good company has boundaries</strong><p>Make a request; your friend can say yes, suggest a twist, or pass.</p></div></div>
+        <button class="reset-link" id="reset-game">↺ Start a fresh moment</button>
+      </aside>
+
+      <section class="scene-panel panel" aria-label="Companion scene">
+        <div class="scene-topline"><span class="scene-tag"><span class="sparkle">✦</span> <span id="scene-tag-text">SLOW AFTERNOON</span></span><button class="scene-switch" id="scene-switch">Change scene <span>↗</span></button></div>
+        <div class="scene-backdrop" id="scene-backdrop">
+          <div class="window"><div class="window-glow"></div><div class="window-cross horizontal"></div><div class="window-cross vertical"></div><div class="cloud cloud-one"></div><div class="cloud cloud-two"></div></div>
+          <div class="plant plant-left"><i></i><i></i><i></i><b></b></div><div class="plant plant-right"><i></i><i></i><i></i><b></b></div>
+          <div class="scene-floor"></div>
+          <div class="scene-caption"><span class="caption-icon">☕</span><div><strong id="scene-name">The window seat</strong><small id="scene-description">Rain taps softly on the glass</small></div></div>
+          <div class="character-stage" id="character-stage" data-pose="idle" aria-label="A friendly illustrated companion">
+            <div class="character-halo"></div>
+            <div class="character-shadow"></div>
+            <div class="person" id="person">
+              <div class="legs"><div class="leg leg-left"></div><div class="leg leg-right"></div></div>
+              <div class="arm arm-left"><div class="hand"></div></div><div class="arm arm-right"><div class="hand"></div></div>
+              <div class="body"><span class="shirt-detail"></span><span class="shirt-pocket"></span></div>
+              <div class="neck"></div>
+              <div class="head"><div class="ear ear-left"></div><div class="ear ear-right"></div><div class="hair-back"></div><div class="face"><span class="brow brow-left"></span><span class="brow brow-right"></span><span class="eye eye-left"></span><span class="eye eye-right"></span><span class="nose"></span><span class="mouth"></span><span class="cheek cheek-left"></span><span class="cheek cheek-right"></span></div><div class="hair-front"><span class="hair-piece one"></span><span class="hair-piece two"></span><span class="hair-piece three"></span></div></div>
+            </div>
+            <div class="pose-bubble" id="pose-bubble">just hanging out</div>
+          </div>
+          <div class="ambient-spark ambient-one">✦</div><div class="ambient-spark ambient-two">✧</div><div class="ambient-spark ambient-three">·</div>
+        </div>
+        <div class="scene-footer"><div class="connection"><span class="heart-pulse">♥</span><div><strong>Little moments</strong><small><span id="moment-count">0</span> sweet things shared</small></div></div><div class="action-bar" aria-label="Quick actions"><button class="action-button" data-action="wave"><span>👋</span> Wave</button><button class="action-button" data-action="dance"><span>🪩</span> Dance</button><button class="action-button" data-action="joke"><span>😄</span> Joke</button><button class="action-button" data-action="breathe"><span>🌿</span> Breathe</button></div></div>
+      </section>
+
+      <section class="chat-panel panel" aria-label="Chat with your companion">
+        <div class="chat-header"><div class="chat-profile"><span class="profile-avatar mira-mini" id="profile-avatar"><span class="mini-hair"></span><span class="mini-face">●</span><i class="online-dot"></i></span><div><strong id="chat-name">Mira</strong><small><span class="typing-indicator"><i></i><i></i><i></i></span> here with you</small></div></div><button class="chat-menu" id="about-button" aria-label="About this game">···</button></div>
+        <div class="chat-log" id="chat-log" aria-live="polite" aria-label="Conversation"></div>
+        <div class="chat-prompts" id="chat-prompts"><button class="prompt-chip">Tell me something good</button><button class="prompt-chip">Show me your happy dance</button></div>
+        <form class="composer" id="chat-form"><label class="visually-hidden" for="chat-input">Write a message</label><input id="chat-input" type="text" autocomplete="off" maxlength="240" placeholder="Say something kind…"><button type="submit" aria-label="Send message">↑</button></form>
+        <div class="chat-footnote">A tiny fictional game, not a real person or AI chat <span>·</span> Be kind to each other</div>
+      </section>
+    </section>
+    <footer class="page-footer"><span>MADE FOR SMALL, SOFT MOMENTS</span><span>✦ <span id="footer-vibe">COZY</span> MODE</span></footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog class="about-dialog" id="about-dialog"><button class="dialog-close" id="dialog-close" aria-label="Close">×</button><span class="dialog-sparkle">✳</span><h2>A little note</h2><p>Little Moments is a scripted, cozy companion game. Mira and Leo are fictional adults with their own choices. Try a kind request, share a thought, or change the scene. They may play along, suggest something else, or say no—good company goes both ways.</p><button class="dialog-ok" id="dialog-ok">Got it ♡</button></dialog>
+  <script src="game.js"></script>
+</body>
+</html>
